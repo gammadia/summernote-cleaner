@@ -130,13 +130,16 @@
               var text = window.clipboardData.getData("Text");
             else
               var text = event.originalEvent.clipboardData.getData(options.cleaner.keepHtml ? 'text/html' : 'text/plain');
+            if(text) {
+              text = cleanPaste(text, options.cleaner.badTags, options.cleaner.badAttributes)
+            }
             if (text) {
               if (msie || ffox) {
                 setTimeout(function () {
-                  $note.summernote('pasteHTML', cleanPaste(text, options.cleaner.badTags, options.cleaner.badAttributes));
+                  $note.summernote('pasteHTML', text);
                 }, 1);
               } else
-                $note.summernote('pasteHTML', cleanPaste(text, options.cleaner.badTags, options.cleaner.badAttributes));
+                $note.summernote('pasteHTML', text);
               if ($editor.find('.note-status-output').length > 0)
                 $editor.find('.note-status-output').html(lang.cleaner.not);
             }
@@ -145,13 +148,14 @@
       }
       var cleanPaste = function(input, badTags, badAttributes) {
         var stringStripper = /(\n|\r| class=(")?Mso[a-zA-Z]+(")? ^p)/g;
-        var output = input.replace(stringStripper, '');
+        var output = input.replace(stringStripper, ' ');
         var commentSripper = new RegExp('<!--(.*?)-->', 'g');
         var output = output.replace(commentSripper, '');
         var tagStripper = new RegExp('<(/)*(meta|link|span|\\?xml:|st1:|o:|font)(.*?)>', 'gi');
         output = output.replace(/ src="(.*?)"/gi, ' src="' + options.cleaner.imagePlaceholder + '"');
         output = output.replace(/ name="(.*?)"/gi, ' data-title="$1" alt="$1"');
         output = output.replace(tagStripper, '');
+        output = output.replace(new RegExp('<!DOCTYPE[^>[]*(\[[^]]*\])?>', 'gi'), '');
         for (var i = 0; i < options.cleaner.badTags.length; i++) {
           tagStripper = new RegExp('<' + options.cleaner.badTags[i] + '.*?' + options.cleaner.badTags[i] + '(.*?)>', 'gi');
           output = output.replace(tagStripper, '');
@@ -165,6 +169,9 @@
         output = output.replace(/ class=""/gi, '');
         output = output.replace(/<b>(.*?)<\/b>/gi, '<strong>$1</strong>');
         output = output.replace(/<i>(.*?)<\/i>/gi, '<em>$1</em>');
+        output = encodeURI(output);
+        output = output.replace(/\%[0|1][0-9]/g, '');
+        output = decodeURI(output);
         output = output.replace(/\s{2,}/g, ' ').trim();
         return output;
       }
