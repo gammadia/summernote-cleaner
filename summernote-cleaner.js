@@ -140,7 +140,7 @@
                 }, 1);
               } else
                 $note.summernote('pasteHTML', text);
-              if ($editor.find('.note-status-output').length > 0)
+              if (options.cleaner.verbose && $editor.find('.note-status-output').length > 0)
                 $editor.find('.note-status-output').html(lang.cleaner.not);
             }
           }
